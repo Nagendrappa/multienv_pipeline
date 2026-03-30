@@ -46,9 +46,21 @@ pipeline {
                     ]) {
                         sh '''
                         terraform --version
-                        terraform init
+                        terraform init -reconfigure
                         '''
                     }
+                }
+            }
+        }
+
+        stage('Workspace Setup') {
+            steps {
+                echo "Setting up workspace for ${params.ENV}"
+                dir("${TF_DIR}") {
+                    sh """
+                    terraform workspace select ${params.ENV} || terraform workspace new ${params.ENV}
+                    terraform workspace list
+                    """
                 }
             }
         }
@@ -122,7 +134,7 @@ pipeline {
             echo "Pipeline executed successfully for ${params.ENV} with action ${params.ACTION}"
         }
         failure {
-            echo " Pipeline failed! Check logs."
+            echo "Pipeline failed! Check logs."
         }
     }
 }
